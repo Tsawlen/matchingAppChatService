@@ -9,7 +9,11 @@ import (
 
 var MockChatData = []dataStructure.Chat{
 	{
-		UserId1: 1, UserId2: 2, Active: true, CreatedAt: stringToTime("2022-11-19 14:02:00.000"), UpdatedAt: stringToTime("2022-11-19 14:02:00.000"),
+		UserId1:   1,
+		UserId2:   2,
+		Active:    true,
+		CreatedAt: stringToTime("2022-11-19 14:02:00.000"),
+		UpdatedAt: stringToTime("2022-11-19 14:02:00.000"),
 	},
 }
 

@@ -51,7 +51,7 @@ func createKeySpace(session *gocql.Session) error {
 }
 
 func createTableIfNotExists(session *gocql.Session) error {
-	err := session.Query("CREATE TABLE IF NOT EXISTS chat_space.chat(userid1 int, userid2 int, createdAt timestamp, changedAt timestamp, PRIMARY KEY(userid1, userid2) )").Exec()
+	err := session.Query("CREATE TABLE IF NOT EXISTS chat_space.chat(userid1 int, userid2 int, chatId uuid, active boolean, createdAt timestamp, changedAt timestamp, PRIMARY KEY(userid1, userid2) )").Exec()
 	if err != nil {
 		return err
 	}
@@ -59,8 +59,14 @@ func createTableIfNotExists(session *gocql.Session) error {
 }
 
 func insertMockData(session *gocql.Session) error {
-	if err := session.Query("INSERT INTO chat_space.chat (userid1, userid2, createdAt, changedAt) VALUES (?,?,?,?) IF NOT EXISTS",
-		mockData.MockChatData[0].UserId1, mockData.MockChatData[0].UserId2, mockData.MockChatData[0].CreatedAt, mockData.MockChatData[0].UpdatedAt).Exec(); err != nil {
+	uuid, _ := gocql.RandomUUID()
+	if err := session.Query("INSERT INTO chat_space.chat (userid1, userid2, chatId, active, createdAt, changedAt) VALUES (?,?,?,?,?,?) IF NOT EXISTS",
+		mockData.MockChatData[0].UserId1,
+		mockData.MockChatData[0].UserId2,
+		uuid,
+		true,
+		mockData.MockChatData[0].CreatedAt,
+		mockData.MockChatData[0].UpdatedAt).Exec(); err != nil {
 		fmt.Println(err)
 		return err
 	}

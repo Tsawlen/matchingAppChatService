@@ -29,13 +29,13 @@ func GetAllChatsForUser(session *gocql.Session, userId int) (*[]dataStructure.Ch
 	cnqlQuery2 := "SELECT * FROM chat_space.chat WHERE userid2=? ALLOW FILTERING"
 	iterator1 := session.Query(cnqlQuery1, userId).Iter()
 	iterator2 := session.Query(cnqlQuery2, userId).Iter()
-	for iterator1.Scan(&chat.UserId1, &chat.UserId2, &chat.CreatedAt, &chat.UpdatedAt) {
+	for iterator1.Scan(&chat.UserId1, &chat.UserId2, &chat.Active, &chat.UpdatedAt, &chat.ChatId, &chat.CreatedAt) {
 		chats = append(chats, chat)
 	}
 	if errIterator1 := iterator1.Close(); errIterator1 != nil {
 		return nil, errIterator1
 	}
-	for iterator2.Scan(&chat.UserId1, &chat.UserId2, &chat.CreatedAt, &chat.UpdatedAt) {
+	for iterator2.Scan(&chat.UserId1, &chat.UserId2, &chat.Active, &chat.UpdatedAt, &chat.ChatId, &chat.CreatedAt) {
 		chats = append(chats, chat)
 	}
 	if errIterator2 := iterator2.Close(); errIterator2 != nil {

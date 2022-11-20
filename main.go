@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+
 	"github.com/gocql/gocql"
 	"github.com/tsawlen/matchingAppChatService/common/database"
 	"github.com/tsawlen/matchingAppChatService/controller"
@@ -16,11 +18,11 @@ func main() {
 
 	defer session.Close()
 
-	router := gin.Default()
+	http.HandleFunc("/sendMessage", controller.HandleConnections)
+	go controller.HandleMessage(session)
 
-	// Get Requests
-	router.GET("/chats", controller.GetAllChats(session))
-	router.GET("/chats/user/:id", controller.GetAllChatsForUser(session))
+	if err := http.ListenAndServe(":8081", nil); err != nil {
+		log.Fatal(err)
+	}
 
-	router.Run("0.0.0.0:8081")
 }
