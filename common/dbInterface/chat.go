@@ -1,6 +1,9 @@
 package dbInterface
 
 import (
+	"log"
+	"time"
+
 	"github.com/gocql/gocql"
 	"github.com/tsawlen/matchingAppChatService/common/dataStructure"
 )
@@ -42,4 +45,19 @@ func GetAllChatsForUser(session *gocql.Session, userId int) (*[]dataStructure.Ch
 		return nil, errIterator2
 	}
 	return &chats, nil
+}
+
+func CreateNewChatForUsers(session *gocql.Session, userId1 int, userId2 int) error {
+	cqlQuery := "INSERT INTO chat_space.chat (userid1, userid2, active, changedat, chatid, createdat) VALUES (?,?,?,?,?,?) IF NOT EXISTS"
+	chatUUID, errUUID := gocql.RandomUUID()
+	timeNow := time.Now()
+	if errUUID != nil {
+		log.Println("Could not generate id for chat!")
+		return errUUID
+	}
+	err := session.Query(cqlQuery, userId1, userId2, true, timeNow, chatUUID, timeNow).Exec()
+	if err != nil {
+		return err
+	}
+	return nil
 }

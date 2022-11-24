@@ -17,13 +17,13 @@ func GetAllMessagesForUser(db *gocql.Session, userId int) (*[]dataStructure.Chat
 	iterator1 := db.Query(cnqlQuery1, userId).Iter()
 	iterator2 := db.Query(cnqlQuery2, userId).Iter()
 
-	for iterator1.Scan(&message.ChatID, &message.UpdatedAt, &message.CreatedAt, &message.Message, &message.Read, &message.SendToUser, &message.WrittenByUserID) {
+	for iterator1.Scan(&message.ChatID, &message.UpdatedAt, &message.ChatID, &message.CreatedAt, &message.Message, &message.Read, &message.SendToUser, &message.WrittenByUserID) {
 		messages = append(messages, message)
 	}
 	if errIterator1 := iterator1.Close(); errIterator1 != nil {
 		return nil, errIterator1
 	}
-	for iterator2.Scan(&message.ChatID, &message.UpdatedAt, &message.CreatedAt, &message.Message, &message.Read, &message.SendToUser, &message.WrittenByUserID) {
+	for iterator2.Scan(&message.ChatID, &message.UpdatedAt, &message.ChatID, &message.CreatedAt, &message.Message, &message.Read, &message.SendToUser, &message.WrittenByUserID) {
 		messages = append(messages, message)
 	}
 	if errIterator2 := iterator2.Close(); errIterator2 != nil {

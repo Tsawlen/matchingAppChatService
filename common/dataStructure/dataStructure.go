@@ -26,6 +26,14 @@ type ChatMessage struct {
 	UpdatedAt       time.Time  `json:"updatedAt"`
 }
 
+type MessageReceive struct {
+	WrittenByUserID int    `json:"writtenBy"`
+	SendToUser      int    `json:"sendTo"`
+	Read            bool   `json:"read"`
+	Message         string `json:"message"`
+	Jwt             string `json:"jwt"`
+}
+
 type SendMessage struct {
 	Message  ChatMessage
 	Reciever *websocket.Conn
