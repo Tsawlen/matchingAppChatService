@@ -26,8 +26,12 @@ func InitDB(sessionChannel chan *gocql.Session) (*gocql.Session, error) {
 		fmt.Println("Error creating Keyspace!")
 		return nil, errKeyspaceCreate
 	}
-	if errTableCreate := createTableIfNotExists(session); errTableCreate != nil {
-		fmt.Println("Error creating Table!")
+	if errTableCreate := createChatTableIfNotExists(session); errTableCreate != nil {
+		fmt.Println("Error creating Table chats!")
+		return nil, errTableCreate
+	}
+	if errTableCreate := createMessagesTableIfNotExists(session); errTableCreate != nil {
+		fmt.Println("Error creating Table messages!")
 		return nil, errTableCreate
 	}
 
@@ -50,9 +54,18 @@ func createKeySpace(session *gocql.Session) error {
 	return nil
 }
 
-func createTableIfNotExists(session *gocql.Session) error {
+func createChatTableIfNotExists(session *gocql.Session) error {
 	err := session.Query("CREATE TABLE IF NOT EXISTS chat_space.chat(userid1 int, userid2 int, chatId uuid, active boolean, createdAt timestamp, changedAt timestamp, PRIMARY KEY(userid1, userid2) )").Exec()
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createMessagesTableIfNotExists(session *gocql.Session) error {
+	err := session.Query("CREATE TABLE IF NOT EXISTS chat_space.messages(messageId uuid, writtenbyuserid int, sendtouser int, chatid uuid, read boolean, message text, createdAt timestamp, changedAt timestamp, PRIMARY KEY(messageId))").Exec()
+	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil

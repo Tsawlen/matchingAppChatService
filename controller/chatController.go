@@ -95,6 +95,9 @@ func HandleMessage(db *gocql.Session) {
 }
 
 func saveChatMessage(db *gocql.Session, chatMessage *dataStructure.ChatMessage) error {
+	if err := dbInterface.SaveMessageToCassandra(db, chatMessage); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -119,7 +122,7 @@ func chatRoomExists(db *gocql.Session, sender int, receiver int) (gocql.UUID, bo
 	}
 
 	for _, data := range *allChatsForSender {
-		if data.UserId2 == receiver {
+		if data.UserId2 == receiver || data.UserId1 == receiver {
 			return data.ChatId, true, nil
 		}
 	}
