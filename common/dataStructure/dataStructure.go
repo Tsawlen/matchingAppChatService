@@ -38,3 +38,7 @@ type SendMessage struct {
 	Message  ChatMessage
 	Reciever *websocket.Conn
 }
+
+type Login struct {
+	UserID int `json:"userID"`
+}

@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gocql/gocql"
@@ -9,7 +10,7 @@ import (
 )
 
 func InitDB(sessionChannel chan *gocql.Session) (*gocql.Session, error) {
-	cluster := gocql.NewCluster("localhost:9042")
+	cluster := gocql.NewCluster(os.Getenv("CASSANDRA_SEED"))
 	cluster.Consistency = gocql.Quorum
 	cluster.ProtoVersion = 4
 	cluster.ConnectTimeout = (time.Second * 40)

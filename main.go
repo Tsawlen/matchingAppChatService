@@ -12,10 +12,11 @@ import (
 
 func main() {
 	sessionChannel := make(chan *gocql.Session)
+	readyChannel := make(chan bool)
 
+	go initializer.LoadEnvVariables(readyChannel)
+	<-readyChannel
 	go database.InitDB(sessionChannel)
-	go initializer.LoadEnvVariables()
-
 	session := <-sessionChannel
 
 	controller.SetDatabase(session)
@@ -25,6 +26,8 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/getAllMessagesForUser", controller.GetAllChatsForUserMux).Methods("GET")
+	router.HandleFunc("/Rooms", controller.GetAllChatRoomsMux).Methods("GET")
+	router.HandleFunc("/createChatRoom", controller.CreateChatMux).Methods("PUT")
 	router.HandleFunc("/sendMessage", controller.HandleConnections)
 	go controller.HandleMessage(session)
 

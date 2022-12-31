@@ -1,16 +1,74 @@
 version: '3'
 
 services:
-  web:
+  chatservice:
     build:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - 8081:8081
+      - 8090:8090
     container_name: chat-service
+    environment:
+      - "CASSANDRA_SEED=cassandraNode1:9042"
     depends_on:
-      database:
-        condition: service_healthy
-    database:
-      image: cassandra:latest
+      - cassandraNode3
+  cassandraNode1:
+    image: cassandra:latest
+    ports:
+      - 9042:9042
+    container_name: cassandraNode1
+    hostname: cassandraNode1
+    environment:
+      - DS_LICENSE=accept
+      - SEEDS=cassandraNode1
+      - START_RPC=false
+      - CLUSTER_NAME=chat_cluster
+      - DC=DC1
+      - RACK=RAC1
+    expose:
+      - 7000
+      - 7001
+      - 9042
+      - 9142
+  cassandraNode2:
+    image: cassandra:latest
+    ports:
+      - 9043:9042
+    container_name: cassandraNode2
+    hostname: cassandraNode2
+    environment:
+      - DS_LICENSE=accept
+      - SEEDS=cassandraNode1
+      - START_RPC=false
+      - CLUSTER_NAME=chat_cluster
+      - DC=DC1
+      - RACK=RAC1
+    expose:
+      - 7000
+      - 7001
+      - 9042
+      - 9142
+    depends_on:
+      - cassandraNode1
+  cassandraNode3:
+    image: cassandra:latest
+    ports:
+      - 9044:9042
+    container_name: cassandraNode3
+    hostname: cassandraNode3
+    environment:
+      - DS_LICENSE=accept
+      - SEEDS=cassandraNode1
+      - START_RPC=false
+      - CLUSTER_NAME=chat_cluster
+      - DC=DC1
+      - RACK=RAC1
+    expose:
+      - 7000
+      - 7001
+      - 9042
+      - 9142
+    depends_on:
+      - cassandraNode1
+    
       

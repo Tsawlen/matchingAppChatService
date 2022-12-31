@@ -66,24 +66,91 @@ func GetAllChatsForUser(session *gocql.Session) gin.HandlerFunc {
 	return gin.HandlerFunc(handler)
 }
 
+func CreateChatMux(w http.ResponseWriter, r *http.Request) {
+	var user1 = r.Header.Get("user1")
+	var user2 = r.Header.Get("user2")
+	intUser1, errConv := strconv.Atoi(user1)
+	intUser2, errConv := strconv.Atoi(user2)
+	//var authorization = r.Header.Get("authorization")
+	type answer struct {
+		Message string
+	}
+	if errConv != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	/*authorized, errAuth := middleware.Auth(authorization, int(intUser1))
+	if errAuth != nil {
+		http.Error(w, errAuth.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !authorized {
+		http.Error(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}*/
+	res := dbInterface.CreateNewChatForUsers(db, intUser1, intUser2)
+	if res != nil {
+		http.Error(w, res.Error(), http.StatusUnauthorized)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	var message answer
+	message.Message = "Chatroom created!"
+	json.NewEncoder(w).Encode(message)
+}
+
+func GetAllChatRoomsMux(w http.ResponseWriter, r *http.Request) {
+	var userId = r.Header.Get("user")
+	var authorization = r.Header.Get("authorization")
+	intUser, errConv := strconv.Atoi(userId)
+	if errConv != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	authorized, errAuth := middleware.Auth(authorization, int(intUser))
+	if errAuth != nil {
+		http.Error(w, errAuth.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !authorized {
+		http.Error(w, "Unauthorized!", http.StatusUnauthorized)
+		return
+	}
+	messages, err := dbInterface.GetAllChatsForUser(db, intUser)
+	if err != nil {
+		http.Error(w, errAuth.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(messages)
+}
+
 func GetAllChatsForUserMux(w http.ResponseWriter, r *http.Request) {
 	var userId = r.Header.Get("user")
 	var authorization = r.Header.Get("authorization")
 	intUser, errConv := strconv.Atoi(userId)
 	if errConv != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 	authorized, errAuth := middleware.Auth(authorization, int(intUser))
 	if errAuth != nil {
 		http.Error(w, errAuth.Error(), http.StatusInternalServerError)
+		return
 	}
 	if !authorized {
 		http.Error(w, "Unauthorized!", http.StatusUnauthorized)
+		return
 	}
 	messages, err := dbInterface.GetAllMessagesForUser(db, intUser)
 	if err != nil {
 		http.Error(w, errAuth.Error(), http.StatusInternalServerError)
+		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(messages)
 
 }
@@ -99,12 +166,16 @@ func HandleConnections(writer http.ResponseWriter, request *http.Request) {
 
 	for {
 		var msg dataStructure.MessageReceive
+		dontSend := false
 		errReadLoop := newWebSocket.ReadJSON(&msg)
 		_, ok := connectedClients[msg.WrittenByUserID]
 		if !ok {
 			connectedClients[msg.WrittenByUserID] = newWebSocket
 		}
-		authorized, errAuth := middleware.Auth(msg.Jwt, msg.WrittenByUserID)
+		if msg.Message == "" {
+			dontSend = true
+		}
+		/*authorized, errAuth := middleware.Auth(msg.Jwt, msg.WrittenByUserID)
 		if errAuth != nil {
 			log.Println("Error validating user: " + errAuth.Error())
 		}
@@ -115,7 +186,7 @@ func HandleConnections(writer http.ResponseWriter, request *http.Request) {
 			}
 			delete(connectedClients, user)
 			break
-		}
+		}*/
 		if errReadLoop != nil {
 			user, err := getCorrectConnectionToClose(newWebSocket)
 			if err != nil {
@@ -124,14 +195,17 @@ func HandleConnections(writer http.ResponseWriter, request *http.Request) {
 			delete(connectedClients, user)
 			break
 		}
-		broadcaster <- msg
+		if !dontSend {
+			broadcaster <- msg
+		}
 	}
 }
 
 func HandleMessage(db *gocql.Session) {
 	for {
 		msg := <-broadcaster
-
+		log.Printf("Sending Message: %s ", msg.Message)
+		log.Println(connectedClients)
 		_, err := prepareSendMessage(db, &msg)
 		if err != nil {
 			fmt.Println("Error sending message: " + err.Error())
