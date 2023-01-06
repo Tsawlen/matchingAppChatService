@@ -17,6 +17,7 @@ type Chat struct {
 }
 
 type ChatMessage struct {
+	MessageID       gocql.UUID `json:"messageID"`
 	WrittenByUserID int        `json:"writtenBy"`
 	SendToUser      int        `json:"sendTo"`
 	ChatID          gocql.UUID `json:"chatID"`
